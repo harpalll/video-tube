@@ -56,7 +56,7 @@ export const registerUser = asyncHandler(async (req, res) => {
   const avatar = await uploadToCloudinary(avatarLocalPath);
   const coverImage = await uploadToCloudinary(coverImageLocalPath);
 
-  if (!avatar) throw new ApiError(409, "Avatar is required");
+  if (!avatar) throw new ApiError(409, "Error While Uploading The Avatar");
 
   const user = await User.create({
     fullName,
@@ -268,4 +268,58 @@ export const updateAccountDetails = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(200, user, "User Account Details Updated Successfully.")
     );
+});
+
+export const updateUserAvatar = asyncHandler(async (req, res) => {
+  // const user = await User.findById(req.user?._id);
+  // if (!user) {
+  //   throw new ApiError(400, "Unauthorized Access.");
+  // }
+
+  const avatarLocalPath = req?.file?.path;
+
+  if (!avatarLocalPath) throw new ApiError(409, "Avatar File is required");
+
+  const avatar = await uploadToCloudinary(avatarLocalPath);
+
+  if (!avatar) throw new ApiError(409, "Error While Uploading The Avatar");
+
+  const user = await User.findByIdAndUpdate(
+    user?._id,
+    {
+      $set: {
+        avatar: avatar.url,
+      },
+    },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Avatar Updated Successfully."));
+});
+
+export const updateUserCoverImage = asyncHandler(async (req, res) => {
+  const coverImageLocalPath = req?.file?.path;
+
+  if (!coverImageLocalPath) throw new ApiError(409, "Cover Image is required");
+
+  const coverImage = await uploadToCloudinary(coverImageLocalPath);
+
+  if (!coverImage)
+    throw new ApiError(409, "Error While Uploading The cover image.");
+
+  const user = await User.findByIdAndUpdate(
+    user?._id,
+    {
+      $set: {
+        coverImage: coverImage.url,
+      },
+    },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Cover Image Updated Successfully."));
 });
