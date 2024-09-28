@@ -272,11 +272,6 @@ export const updateAccountDetails = asyncHandler(async (req, res) => {
 });
 
 export const updateUserAvatar = asyncHandler(async (req, res) => {
-  // const user = await User.findById(req.user?._id);
-  // if (!user) {
-  //   throw new ApiError(400, "Unauthorized Access.");
-  // }
-
   const avatarLocalPath = req?.file?.path;
 
   if (!avatarLocalPath) throw new ApiError(409, "Avatar File is required");
@@ -286,7 +281,7 @@ export const updateUserAvatar = asyncHandler(async (req, res) => {
   if (!avatar) throw new ApiError(409, "Error While Uploading The Avatar");
 
   const user = await User.findByIdAndUpdate(
-    user?._id,
+    req.user?._id,
     {
       $set: {
         avatar: avatar.url,
@@ -311,7 +306,7 @@ export const updateUserCoverImage = asyncHandler(async (req, res) => {
     throw new ApiError(409, "Error While Uploading The cover image.");
 
   const user = await User.findByIdAndUpdate(
-    user?._id,
+    req.user?._id,
     {
       $set: {
         coverImage: coverImage.url,

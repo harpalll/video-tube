@@ -47,4 +47,5 @@ router
   .patch(Auth, upload.single("coverImage"), updateUserCoverImage);
 router.route("/channel/:username").get(Auth, getUserChannelProfile);
 router.route("/history").get(Auth, getWatchHistory);
+
 export default router;
