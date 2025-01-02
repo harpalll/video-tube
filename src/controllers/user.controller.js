@@ -28,6 +28,8 @@ export const generateAccessAndRefreshTokens = async (userId) => {
 
 export const registerUser = asyncHandler(async (req, res) => {
   const { username, fullName, email, password } = req.body;
+  console.log(req.files);
+
   if (
     [username, fullName, email, password].some((field) => field?.trim() === "")
   ) {
@@ -42,6 +44,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 
   // check for files
   const avatarLocalPath = req.files?.avatar[0]?.path;
+
   // const coverImageLocalPath = req.files?.coverImage[0]?.path;
   let coverImageLocalPath;
   if (
