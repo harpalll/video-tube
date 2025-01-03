@@ -41,10 +41,6 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid User Id.");
   }
 
-  // const userPlaylists = await Playlist.find({
-  //   owner: userId,
-  // });
-
   const userPlaylists = await Playlist.aggregate([
     {
       $match: {
@@ -77,9 +73,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
           },
           {
             $addFields: {
-              owner: {
-                $first: "$owner",
-              },
+              owner: { $arrayElemAt: ["$owner", 0] }, // Extract the first owner
             },
           },
           {
@@ -112,9 +106,7 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
     },
     {
       $addFields: {
-        createdBy: {
-          $first: "$createdBy",
-        },
+        createdBy: { $arrayElemAt: ["$createdBy", 0] },
       },
     },
     {
@@ -125,20 +117,16 @@ const getUserPlaylists = asyncHandler(async (req, res) => {
         description: 1,
       },
     },
-  ]).toArray();
+  ]);
 
-  if (userPlaylists.length === 0) {
-    throw new ApiError(504, "No Playlists found");
-  }
-
-  if (!userPlaylists) {
-    throw new ApiError(500, "Error While Fetching Playlists.");
+  if (!userPlaylists || userPlaylists.length === 0) {
+    throw new ApiError(404, "No Playlists found");
   }
 
   return res
     .status(200)
     .json(
-      new ApiResponse(200, userPlaylists, "Playlists fetched Successfully.")
+      new ApiResponse(200, userPlaylists, "Playlists fetched successfully.")
     );
 });
 
@@ -258,7 +246,7 @@ const addVideoToPlaylist = asyncHandler(async (req, res) => {
   }
 
   const user = req.user._id;
-  if (playlist.owner !== user) {
+  if (playlist.owner.toString() !== user.toString()) {
     throw new ApiError(401, "You're not allowed to modify this playlist.");
   }
 
@@ -304,7 +292,7 @@ const removeVideoFromPlaylist = asyncHandler(async (req, res) => {
     throw new ApiError(400, "No Playlist found with the ID");
   }
 
-  if (playlist.owner.toString() !== req.user._id) {
+  if (playlist.owner.toString() !== req.user._id.toString()) {
     throw new ApiError(403, "You are not allowed to modify this playlist");
   }
 
@@ -350,7 +338,7 @@ const deletePlaylist = asyncHandler(async (req, res) => {
     throw new ApiError(400, "No Playlist found with this ID");
   }
 
-  if (playlist.owner.toString() !== req.user._id) {
+  if (playlist.owner.toString() !== req.user._id.toString()) {
     throw new ApiError(403, "You are not allowed to delete this playlist");
   }
 
@@ -378,7 +366,7 @@ const updatePlaylist = asyncHandler(async (req, res) => {
     throw new ApiError(400, "No Playlist found with this ID");
   }
 
-  if (playlist.owner.toString() !== req.user._id) {
+  if (playlist.owner.toString() !== req.user._id.toString()) {
     throw new ApiError(403, "You are not allowed to modify this playlist");
   }
 

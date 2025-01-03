@@ -113,7 +113,6 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 });
 
 const getLikedVideos = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
   const likedVideos = await Like.aggregate([
     {
       $match: {
@@ -127,54 +126,43 @@ const getLikedVideos = asyncHandler(async (req, res) => {
         localField: "video",
         foreignField: "_id",
         as: "video",
-        pipeline: [
-          {
-            $lookup: {
-              from: "users",
-              localField: "owner",
-              foreignField: "_id",
-              as: "owner",
-              pipeline: [
-                {
-                  $project: {
-                    avatar: 1,
-                    username: 1,
-                    fullName: 1,
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      },
-    },
-    {
-      $addFields: {
-        owner: {
-          $first: "$owner",
-        },
-      },
-    },
-    {
-      $project: {
-        videoFile: 1,
-        thumbnail: 1,
-        title: 1,
-        duration: 1,
-        views: 1,
-        owner: 1,
       },
     },
     {
       $unwind: "$video",
     },
     {
+      $lookup: {
+        from: "users",
+        localField: "video.owner",
+        foreignField: "_id",
+        as: "video.owner",
+      },
+    },
+    {
+      $addFields: {
+        "video.owner": { $arrayElemAt: ["$video.owner", 0] },
+      },
+    },
+    {
       $project: {
-        video: 1,
-        likedBy: 1,
+        "video.videoFile": 1,
+        "video.thumbnail": 1,
+        "video.title": 1,
+        "video.duration": 1,
+        "video.views": 1,
+        "video.owner.avatar": 1,
+        "video.owner.username": 1,
+        "video.owner.fullName": 1,
       },
     },
   ]);
+
+  if (!likedVideos.length) {
+    return res
+      .status(404)
+      .json(new ApiResponse(404, [], "No liked videos found"));
+  }
 
   return res
     .status(200)

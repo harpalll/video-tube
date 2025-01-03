@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { Comment } from "../models/comment.model.js";
+import { Video } from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -91,9 +92,7 @@ const addComment = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Error while saving the comment");
   }
 
-  return response
-    .status(200)
-    .json(new ApiResponse(200, comment, "Comment Saved"));
+  return res.status(200).json(new ApiResponse(200, comment, "Comment Saved"));
 });
 
 const updateComment = asyncHandler(async (req, res) => {
@@ -102,14 +101,14 @@ const updateComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Comment content is required");
   }
   const { commentId } = req.params;
-  const user = req.user._id;
+  const userId = req.user._id.toString();
 
   const originalComment = await Comment.findById(commentId);
   if (!originalComment) {
     throw new ApiError(404, "Comment not found");
   }
 
-  if (originalComment.owner !== user) {
+  if (originalComment.owner.toString() !== userId) {
     throw new ApiError(403, "You don't have permission to update this comment");
   }
 
@@ -134,14 +133,14 @@ const updateComment = asyncHandler(async (req, res) => {
 
 const deleteComment = asyncHandler(async (req, res) => {
   const { commentId } = req.params;
-  const user = req.user._id;
+  const userId = req.user._id.toString();
 
   const originalComment = await Comment.findById(commentId);
   if (!originalComment) {
     throw new ApiError(404, "Comment not found");
   }
 
-  if (originalComment.owner !== user) {
+  if (originalComment.owner.toString() !== userId) {
     throw new ApiError(403, "You don't have permission to update this comment");
   }
 
