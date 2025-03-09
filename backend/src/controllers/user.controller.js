@@ -45,10 +45,10 @@ export const registerUser = asyncHandler(async (req, res) => {
   let avatarLocalPath;
   if (
     req.files &&
-    Array.isArray(req.files.videoFile) &&
-    req.files.videoFile.length > 0
+    Array.isArray(req.files.avatar) &&
+    req.files.avatar.length > 0
   ) {
-    avatarLocalPath = req.files.videoFile[0].path;
+    avatarLocalPath = req.files.avatar[0].path;
   }
 
   let coverImageLocalPath;
@@ -60,10 +60,10 @@ export const registerUser = asyncHandler(async (req, res) => {
     coverImageLocalPath = req.files.coverImage[0].path;
   }
 
-  if (!avatarLocalPath) throw new ApiError(409, "Avatar is required");
-  if (!thumbnailLocalPath) {
-    throw new ApiError(400, "thumbnail file required");
-  }
+  // if (!avatarLocalPath) throw new ApiError(409, "Avatar is required");
+  // if (!thumbnailLocalPath) {
+  //   throw new ApiError(400, "thumbnail file required");
+  // }
 
   const avatar = await uploadToCloudinary(avatarLocalPath);
   const coverImage = await uploadToCloudinary(coverImageLocalPath);
