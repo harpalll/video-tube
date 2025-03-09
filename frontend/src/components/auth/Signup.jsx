@@ -1,4 +1,98 @@
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 export const Signup = () => {
+  const navigate = useNavigate();
+  const [data, setData] = useState({
+    username: "",
+    fullName: "",
+    email: "",
+    password: "",
+    avatar: null,
+    coverImage: null,
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleAvatarChange = (e) => {
+    setData({ ...data, avatar: e.target.files[0] });
+  };
+
+  const handleCoverImageChange = (e) => {
+    setData({ ...data, coverImage: e.target.files[0] });
+  };
+
+  // useEffect(() => {
+  //   const url = 'http://localhost:3000/api/v1/healthcheck';
+  //   axios.get(url).then((res) => {
+  //     console.log(res.data);
+  //   });
+  // },[]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const { username, fullName, email, password, avatar, coverImage } = data;
+
+    if (
+      !username ||
+      !fullName ||
+      !email ||
+      !password ||
+      !avatar ||
+      !coverImage
+    ) {
+      toast.error(
+        "Please fill all fields including the avatar and cover image."
+      );
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("fullName", fullName);
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("avatar", avatar);
+    formData.append("coverImage", coverImage);
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/api/v1/users/register",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success("User registered successfully!");
+      setData({
+        username: "",
+        email: "",
+        fullName: "",
+        password: "",
+        avatar: null,
+        coverImage: null,
+      });
+      navigate("/auth/login",{
+        state: {
+          message: "User registered successfully!",
+        },
+      });
+    } catch (error) {
+      console.error("Error registering user:", error);
+      toast.error(error.response?.data?.message || "Something went wrong!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <div className="mx-auto my-8 flex w-full max-w-sm flex-col px-4">
@@ -60,6 +154,32 @@ export const Signup = () => {
         <div className="mb-6 w-full text-center text-2xl font-semibold uppercase">
           Play
         </div>
+
+        {/* Form */}
+        <label htmlFor="username" className="mb-1 inline-block text-gray-300">
+          Username*
+        </label>
+        <input
+          id="username"
+          type="text"
+          placeholder="Enter your username"
+          className="mb-4 rounded-lg border bg-transparent px-3 py-2"
+          value={data.username}
+          onChange={(e) => setData({ ...data, username: e.target.value })}
+        />
+
+        <label htmlFor="fullname" className="mb-1 inline-block text-gray-300">
+          Fullname*
+        </label>
+        <input
+          id="fullname"
+          type="text"
+          placeholder="Enter your fullname"
+          className="mb-4 rounded-lg border bg-transparent px-3 py-2"
+          value={data.fullName}
+          onChange={(e) => setData({ ...data, fullName: e.target.value })}
+        />
+
         <label htmlFor="email" className="mb-1 inline-block text-gray-300">
           Email*
         </label>
@@ -68,10 +188,88 @@ export const Signup = () => {
           type="email"
           placeholder="Enter your email"
           className="mb-4 rounded-lg border bg-transparent px-3 py-2"
+          value={data.email}
+          onChange={(e) => setData({ ...data, email: e.target.value })}
         />
-        <button className="bg-[#ae7aff] px-4 py-3 text-black">
+
+        <label htmlFor="password" className="mb-1 inline-block text-gray-300">
+          Password*
+        </label>
+        <input
+          id="password"
+          type="password"
+          placeholder="Enter your password"
+          className="mb-4 rounded-lg border bg-transparent px-3 py-2"
+          value={data.password}
+          onChange={(e) => setData({ ...data, password: e.target.value })}
+        />
+
+        <label htmlFor="avatar" className="mb-1 inline-block text-gray-300">
+          Avatar Image*
+        </label>
+        <input
+          id="avatar"
+          type="file"
+          accept="image/*"
+          onChange={handleAvatarChange}
+          className="mb-4 rounded-lg border bg-transparent px-3 py-2"
+        />
+        {data.avatar && (
+          <div className="mb-4">
+            <img
+              src={URL.createObjectURL(data.avatar)}
+              alt="Avatar Preview"
+              className="w-32 h-32 object-cover rounded-full"
+            />
+          </div>
+        )}
+
+        <label htmlFor="coverImage" className="mb-1 inline-block text-gray-300">
+          Cover Image*
+        </label>
+        <input
+          id="coverImage"
+          type="file"
+          accept="image/*"
+          onChange={handleCoverImageChange}
+          className="mb-4 rounded-lg border bg-transparent px-3 py-2"
+        />
+        {data.coverImage && (
+          <div className="mb-4">
+            <img
+              src={URL.createObjectURL(data.coverImage)}
+              alt="Cover Image Preview"
+              className="w-full h-32 object-cover rounded-lg"
+            />
+          </div>
+        )}
+
+        {/* <button
+          className="bg-[#ae7aff] px-4 py-3 text-black"
+          onClick={handleSubmit}
+        >
           Sign Up with Email
+        </button> */}
+        <button
+          onClick={handleSubmit}
+          className={`bg-[#ae7aff] px-4 py-3 text-black ${
+            loading ? "cursor-wait" : ""
+          }`}
+          disabled={loading}
+        >
+          {loading ? (
+            <div>
+            <div className="rounded-full ring-white"></div>
+            <span className="animate-spin">Submitting...</span>
+            </div>
+          ) : (
+            "Sign Up with Email"
+          )}
         </button>
+
+        <div>
+          <ToastContainer />
+        </div>
       </div>
     </>
   );

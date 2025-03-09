@@ -1,4 +1,15 @@
+import { useLocation } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 export const Login = () => {
+  const location = useLocation();
+  const message = location.state?.message;
+
+  if (message) {
+    toast.success(message);
+  }
+
   return (
     <>
       <div className="mx-auto my-8 flex w-full max-w-sm flex-col px-4">
@@ -72,6 +83,10 @@ export const Login = () => {
         <button className="bg-[#ae7aff] px-4 py-3 text-black">
           Sign in with Email
         </button>
+
+      <div>
+        <ToastContainer />
+      </div>
       </div>
     </>
   );
